@@ -232,11 +232,18 @@ def show_mapa(config):
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        n_train = st.slider("Qtd Treino", 3, max_train, 5)
+        n_train = st.slider("Qtd Treino", 1, max_train, 2)
     with col2:
-        n_test = st.slider("Qtd Teste", 3, max_test, 3)
+        n_test = st.slider("Qtd Teste", 1, max_test, 1)
     with col3:
         show_predictions = st.toggle("Mostrar Previsões", value=False)
+    
+    # Botão para gerar mapa (só gera quando clicado)
+    gerar_mapa = st.button("🗺️ Gerar Mapa", type="primary")
+    
+    if not gerar_mapa:
+        st.info("💡 Clique no botão 'Gerar Mapa' para visualizar as trajetórias")
+        return
     
     # Usar avaliação existente
     try:
@@ -265,7 +272,6 @@ def show_mapa(config):
     except Exception as e:
         st.error(f"Erro ao gerar mapa: {e}")
         st.info("Execute: python evaluation/visualization.py --full")
-        # Legenda continua abaixo
 
 
 def show_treinamento(config):
