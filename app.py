@@ -37,9 +37,36 @@ def load_all_data_cached():
     """Carrega todos os dados uma vez"""
     try:
         from data.loader import DataLoader
+        from config.settings import config
+        
         loader = DataLoader()
-        return loader.load_data(use_sample_if_missing=True)
-    except Exception:
+        
+        # Primeiro: garantir que dados existem (baixa do Kaggle se necessário)
+        data_exists = loader.ensure_data_exists(download_if_missing=True)
+        
+        if not data_exists:
+            # Se ainda não existem, mostrar erro com debug
+            st.error(f"❌ Dados não encontrados!")
+            st.error(f"Procurando em: {config.DATA_DIR}")
+            st.error(f"Train: {config.get_train_path()}")
+            st.error(f"Test: {config.get_test_path()}")
+            return None, None
+        
+        # Segundo: carregar os dados
+        return loader.load_data(use_sample_if_missing=False)
+    except Exception as e:
+        import traceback
+        print(f"Erro ao carregar dados: {e}")
+        traceback.print_exc()
+        st.error(f"❌ Erro: {e}")
+        return None, None
+        
+        # Segundo: carregar os dados
+        return loader.load_data(use_sample_if_missing=False)
+    except Exception as e:
+        import traceback
+        print(f"Erro ao carregar dados: {e}")
+        traceback.print_exc()
         return None, None
 
 
