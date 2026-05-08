@@ -140,7 +140,7 @@ class TrajectoryVisualizer:
         for idx, row in train_sample.iterrows():
             trajectory_id = row['trajectory_id']
 
-            # Parse da trajetória
+# Parse da trajetória
             try:
                 lat_points = eval(row['path_lat'])
                 lon_points = eval(row['path_lon'])
@@ -155,8 +155,8 @@ class TrajectoryVisualizer:
                         weight=2,
                         opacity=0.7,
                         popup=f'Treino: {trajectory_id}'
-).add_to(feature_group_train)
-            
+                    ).add_to(feature_group_train)
+
             except Exception as e:
                 print(f"⚠️  Erro ao processar trajetória treino {trajectory_id}: {e}")
                 continue
@@ -179,7 +179,7 @@ class TrajectoryVisualizer:
                 # Criar linha da trajetória
                 points = list(zip(lat_points, lon_points))
 
-if len(points) > 1:
+                if len(points) > 1:
                     folium.PolyLine(
                         points,
                         color='red',
