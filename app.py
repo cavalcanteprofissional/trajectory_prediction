@@ -227,14 +227,14 @@ def show_mapa(config):
     """)
     
     # Controles - valores menores para evitar timeout
-    max_train = min(50, len(train_data))
-    max_test = min(20, len(test_data))
+    max_train = min(20, len(train_data))
+    max_test = min(10, len(test_data))
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        n_train = st.slider("Qtd Treino", 5, max_train, 20)
+        n_train = st.slider("Qtd Treino", 3, max_train, 5)
     with col2:
-        n_test = st.slider("Qtd Teste", 5, max_test, 10)
+        n_test = st.slider("Qtd Teste", 3, max_test, 3)
     with col3:
         show_predictions = st.toggle("Mostrar Previsões", value=False)
     

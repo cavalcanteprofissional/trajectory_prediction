@@ -79,7 +79,7 @@ class TrajectoryVisualizer:
             print(f"❌ Erro ao carregar submissão: {e}")
             return None
 
-    def create_trajectory_map(self, max_trajectories=100, show_predictions=True, save_path=None):
+    def create_trajectory_map(self, max_trajectories=10, show_predictions=False, save_path=None):
         """
         Cria um mapa interativo com Folium mostrando trajetórias de treino, teste e predições
 
@@ -155,32 +155,12 @@ class TrajectoryVisualizer:
                         weight=2,
                         opacity=0.7,
                         popup=f'Treino: {trajectory_id}'
-                    ).add_to(feature_group_train)
-
-                    # Adicionar marcador no início (verde escuro)
-                    folium.CircleMarker(
-                        location=points[0],
-                        radius=4,
-                        color='darkblue',
-                        fill=True,
-                        fill_color='darkblue',
-                        popup=f'Início Treino: {trajectory_id}'
-                    ).add_to(feature_group_train)
-
-                    # Adicionar marcador no fim (vermelho escuro)
-                    folium.CircleMarker(
-                        location=points[-1],
-                        radius=4,
-                        color='darkred',
-                        fill=True,
-                        fill_color='darkred',
-                        popup=f'Fim Treino: {trajectory_id}'
-                    ).add_to(feature_group_train)
-
+).add_to(feature_group_train)
+            
             except Exception as e:
                 print(f"⚠️  Erro ao processar trajetória treino {trajectory_id}: {e}")
                 continue
-
+        
         # Plotar trajetórias de TESTE (VERMELHO)
         print(f"📍 Plotando {min(max_trajectories if max_trajectories != float('inf') else len(test_df), len(test_df))} trajetórias de teste...")
 
@@ -199,7 +179,7 @@ class TrajectoryVisualizer:
                 # Criar linha da trajetória
                 points = list(zip(lat_points, lon_points))
 
-                if len(points) > 1:
+if len(points) > 1:
                     folium.PolyLine(
                         points,
                         color='red',
@@ -208,30 +188,10 @@ class TrajectoryVisualizer:
                         popup=f'Teste: {trajectory_id}'
                     ).add_to(feature_group_test)
 
-                    # Adicionar marcador no início (rosa)
-                    folium.CircleMarker(
-                        location=points[0],
-                        radius=4,
-                        color='purple',
-                        fill=True,
-                        fill_color='purple',
-                        popup=f'Início Teste: {trajectory_id}'
-                    ).add_to(feature_group_test)
-
-                    # Adicionar marcador no fim (laranja)
-                    folium.CircleMarker(
-                        location=points[-1],
-                        radius=4,
-                        color='orange',
-                        fill=True,
-                        fill_color='orange',
-                        popup=f'Fim Teste: {trajectory_id}'
-                    ).add_to(feature_group_test)
-
             except Exception as e:
                 print(f"⚠️  Erro ao processar trajetória teste {trajectory_id}: {e}")
                 continue
-
+        
         # Plotar PREDIÇÕES da última submissão (VERDE) - apenas se show_predictions=True
         if show_predictions and submission_df is not None:
             print(f"📍 Plotando {len(submission_df)} predições...")
