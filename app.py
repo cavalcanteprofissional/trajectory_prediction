@@ -232,18 +232,11 @@ def show_mapa(config):
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        n_train = st.slider("Qtd Treino", 1, max_train, 2)
+        n_train = st.slider("Qtd Treino", 1, max_train, 5)
     with col2:
-        n_test = st.slider("Qtd Teste", 1, max_test, 1)
+        n_test = st.slider("Qtd Teste", 1, max_test, 3)
     with col3:
         show_predictions = st.toggle("Mostrar Previsões", value=False)
-    
-    # Botão para gerar mapa (só gera quando clicado)
-    gerar_mapa = st.button("🗺️ Gerar Mapa", type="primary")
-    
-    if not gerar_mapa:
-        st.info("💡 Clique no botão 'Gerar Mapa' para visualizar as trajetórias")
-        return
     
     # Usar avaliação existente
     try:

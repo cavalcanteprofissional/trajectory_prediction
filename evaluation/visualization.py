@@ -145,8 +145,11 @@ class TrajectoryVisualizer:
                 lat_points = eval(row['path_lat'])
                 lon_points = eval(row['path_lon'])
 
-                # Criar linha da trajetória
-                points = list(zip(lat_points, lon_points))
+                # Usar apenas início e fim (para evitar HTML grande)
+                points = [
+                    (lat_points[0], lon_points[0]),  # Primeiro ponto
+                    (lat_points[-1], lon_points[-1])  # Último ponto
+                ]
 
                 if len(points) > 1:
                     folium.PolyLine(
@@ -176,8 +179,11 @@ class TrajectoryVisualizer:
                 lat_points = eval(row['path_lat'])
                 lon_points = eval(row['path_lon'])
 
-                # Criar linha da trajetória
-                points = list(zip(lat_points, lon_points))
+                # Usar apenas início e fim (para evitar HTML grande)
+                points = [
+                    (lat_points[0], lon_points[0]),  # Primeiro ponto
+                    (lat_points[-1], lon_points[-1])  # Último ponto
+                ]
 
                 if len(points) > 1:
                     folium.PolyLine(
