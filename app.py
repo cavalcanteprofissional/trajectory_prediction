@@ -182,7 +182,7 @@ def show_home(config):
                 "Coluna": train_data.columns,
                 "Tipo": [str(t)[:8] for t in train_data.dtypes]
             }),
-            use_container_width=True,
+            width='stretch',
             hide_index=True
         )
     
@@ -193,7 +193,7 @@ def show_home(config):
                 "Coluna": test_data.columns,
                 "Tipo": [str(t)[:8] for t in test_data.dtypes]
             }),
-            use_container_width=True,
+            width='stretch',
             hide_index=True
         )
     
@@ -226,17 +226,17 @@ def show_mapa(config):
     - **Dataset:** Trajetórias de ônibus/táxi em Beijing para predição de destino
     """)
     
-    # Controles
-    max_train = min(100, len(train_data))
-    max_test = min(50, len(test_data))
+    # Controles - valores menores para evitar timeout
+    max_train = min(50, len(train_data))
+    max_test = min(20, len(test_data))
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        n_train = st.slider("Qtd Treino", 10, max_train, 50)
+        n_train = st.slider("Qtd Treino", 5, max_train, 20)
     with col2:
-        n_test = st.slider("Qtd Teste", 10, max_test, 20)
+        n_test = st.slider("Qtd Teste", 5, max_test, 10)
     with col3:
-        show_predictions = st.toggle("Mostrar Previsões")
+        show_predictions = st.toggle("Mostrar Previsões", value=False)
     
     # Usar avaliação existente
     try:
@@ -352,7 +352,7 @@ def show_treinamento(config):
                     if cv_df:
                         import pandas as pd
                         cv_df = sorted(cv_df, key=lambda x: x['Erro (km)'])
-                        st.dataframe(pd.DataFrame(cv_df), use_container_width=True)
+                        st.dataframe(pd.DataFrame(cv_df), width='stretch')
 
 # Salvar modelo
                 model_path = pipeline.save_model(metadata['model_name'])
@@ -417,7 +417,7 @@ def show_previsao(config):
                 df = DataLoader.convert_discrete_to_list_format(df)
                 st.success(f"✅ Convertido: {len(df)} trajetórias")
             
-            st.dataframe(df.head(10), use_container_width=True)
+            st.dataframe(df.head(10), width='stretch')
             
             if saved_models and st.button("🔮 Executar Previsão", type="primary"):
                 with st.spinner("Prevendo..."):
@@ -462,7 +462,7 @@ def show_previsao(config):
                         st.success(f"✅ {len(predictions)} predições geradas!")
                         
                         # Mostrar tabela
-                        st.dataframe(result_df.head(20), use_container_width=True)
+                        st.dataframe(result_df.head(20), width='stretch')
                         
                         # Download
                         csv = result_df.to_csv(index=False)
@@ -563,7 +563,7 @@ def show_analise(config):
         
         st.markdown(f"**Última predição:** {latest.name}")
         st.markdown(f"- Previsões: {len(df_sub)}")
-        st.dataframe(df_sub.head(), use_container_width=True)
+        st.dataframe(df_sub.head(), width='stretch')
         
         # Merge with test for comparison
         if has_targets:
