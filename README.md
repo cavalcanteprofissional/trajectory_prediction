@@ -362,7 +362,6 @@ O projeto suporta 16+ algoritmos de Machine Learning:
 
 ### Outros Modelos Disponíveis
 
-- CatBoost
 - Extra Trees
 - Ridge Regression
 - Lasso Regression

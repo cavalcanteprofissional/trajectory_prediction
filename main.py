@@ -647,7 +647,7 @@ Exemplos de uso:
     parser.add_argument('-m', '--message', type=str, default='',
                        help='Mensagem customizada para submissão Kaggle')
     parser.add_argument('--model', type=str, default='best',
-                       help="Modelo: 'best' (sugere o melhor), ou especifique: XGBoost, LightGBM, CatBoost, RandomForest, GradientBoosting, BaggedGB, Ensemble")
+                       help="Modelo: 'best' (sugere o melhor), ou especifique: XGBoost, LightGBM, RandomForest, GradientBoosting, BaggedGB, Ensemble")
     parser.add_argument('--seed', type=int, default=None,
                        help='Seed aleatória (default: config.SEED)')
     

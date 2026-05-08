@@ -258,7 +258,7 @@ def show_treinamento(config):
     
     col1, col2, col3 = st.columns(3)
     
-    available_models = ['XGBoost', 'LightGBM', 'CatBoost', 'RandomForest', 
+    available_models = ['XGBoost', 'LightGBM', 'RandomForest', 
                       'GradientBoosting', 'BaggedGB', 'HistGradientBoosting']
     
     with col1:

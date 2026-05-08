@@ -26,7 +26,6 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
-from catboost import CatBoostRegressor
 from sklearn.ensemble import BaggingRegressor
 import numpy as np
 
@@ -41,7 +40,6 @@ class ModelFactory:
         'GradientBoosting',
         'HistGradientBoosting',
         'ExtraTrees',
-        'CatBoost',
         'Ridge',
         'Lasso',
         'ElasticNet',
@@ -187,21 +185,6 @@ class ModelFactory:
             'n_jobs': -1
         }
         
-        # CatBoost
-        model_params['CatBoost'] = {
-            'iterations': n_estimators,
-            'depth': 6,
-            'learning_rate': 0.1,
-            'l2_leaf_reg': 3.0,
-            'border_count': 254,
-            'random_strength': 1.0,
-            'bagging_temperature': 1.0,
-            'od_type': 'Iter',
-            'od_wait': 50,
-            'random_state': self.DEFAULT_SEED,
-            'verbose': 0
-        }
-        
         # Ridge Regression
         model_params['Ridge'] = {
             'alpha': 1.0,
@@ -325,8 +308,6 @@ class ModelFactory:
                 model = HistGradientBoostingRegressor(**default_params)
             elif model_name == 'ExtraTrees':
                 model = ExtraTreesRegressor(**default_params)
-            elif model_name == 'CatBoost':
-                model = CatBoostRegressor(**default_params)
             elif model_name == 'Ridge':
                 model = Ridge(**default_params)
             elif model_name == 'Lasso':
@@ -353,9 +334,9 @@ class ModelFactory:
             model = self._create_model_safe(model_name, default_params)
         
         # Criar modelo multi-output para prever latitude e longitude
-        # Apenas RandomForest, XGBoost, ExtraTrees e CatBoost suportam multi-output nativamente
+        # RandomForest, XGBoost, ExtraTrees suportam multi-output nativamente
         # LightGBM, GradientBoosting e HistGradientBoosting precisam de wrapper
-        if model_name in ['RandomForest', 'XGBoost', 'ExtraTrees', 'CatBoost']:
+        if model_name in ['RandomForest', 'XGBoost', 'ExtraTrees']:
             # Esses modelos já suportam multi-output nativamente
             pass
         else:
@@ -390,9 +371,6 @@ class ModelFactory:
             'ExtraTrees': ['n_estimators', 'max_depth', 'min_samples_split',
                           'min_samples_leaf', 'max_features', 'bootstrap',
                           'random_state', 'n_jobs'],
-            'CatBoost': ['iterations', 'depth', 'learning_rate', 'l2_leaf_reg',
-                        'border_count', 'random_strength', 'bagging_temperature',
-                        'od_type', 'od_wait', 'random_state', 'verbose'],
             'Ridge': ['alpha', 'random_state'],
             'Lasso': ['alpha', 'random_state', 'max_iter'],
             'ElasticNet': ['alpha', 'l1_ratio', 'random_state', 'max_iter'],
@@ -425,8 +403,6 @@ class ModelFactory:
             return HistGradientBoostingRegressor(**filtered_params)
         elif model_name == 'ExtraTrees':
             return ExtraTreesRegressor(**filtered_params)
-        elif model_name == 'CatBoost':
-            return CatBoostRegressor(**filtered_params)
         elif model_name == 'Ridge':
             return Ridge(**filtered_params)
         elif model_name == 'Lasso':

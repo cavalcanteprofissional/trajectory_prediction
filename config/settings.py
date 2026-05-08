@@ -20,7 +20,6 @@ class Config:
         'XGBoost',
         'LightGBM',
         'GradientBoosting',
-        'CatBoost',
         'LinearRegression'
     ]
     
