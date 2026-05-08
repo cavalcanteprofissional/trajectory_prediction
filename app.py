@@ -260,7 +260,7 @@ def show_mapa(config):
         if html_path.exists():
             with open(html_path, "r", encoding="utf-8") as f:
                 html_content = f.read()
-            st.components.v1.html(html_content, height=600)
+            st.iframe(html_content, height=600)
         
     except Exception as e:
         st.error(f"Erro ao gerar mapa: {e}")
