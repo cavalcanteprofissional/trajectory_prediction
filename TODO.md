@@ -50,6 +50,16 @@ Transformar o projeto em uma **aplicação independente** com:
   - Versões semânticas documentadas
   - Mudanças organizadas por tipo (Added, Changed, Fixed, Removed)
 
+### Fase 6: Kaggle Dataset ☁️
+- [x] Dataset criado no Kaggle: muitomalakoi/trajectory-prediction-beijing
+- [x] Adicionado download automático via kagglehub
+- [x] Adicionado kagglehub às dependências
+- [x] data/loader.py atualizado com download automático
+  - Baixa do Kaggle se dados não existirem localmente
+  - Funciona com Streamlit Cloud
+- [ ] **Etapa 6.1**: Atualizar README.md com instruções de Kaggle Dataset
+- [ ] Testar download automático
+
 ---
 
 ## Entrada do Projeto

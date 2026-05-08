@@ -1,9 +1,10 @@
 # data/loader.py
 """
-Data Loader - Versão Independente (sem Kaggle)
+Data Loader - Versão com Suporte a Kaggle Dataset
 
 Suporta:
 - Arquivos locais train.csv e test.csv
+- Download automático do Kaggle Dataset
 - Upload de novos dados via interface
 - Múltiplos formatos de entrada
 """
@@ -12,12 +13,64 @@ import numpy as np
 import ast
 from pathlib import Path
 import sys
+import os
+import shutil
 
 # Adicionar diretório raiz ao path
 ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from config.settings import config
+
+KAGGLE_DATASET = "muitomalakoi/trajectory-prediction-beijing"
+
+
+def download_kaggle_dataset():
+    """
+    Baixa o dataset do Kaggle usando kagglehub.
+    
+    Returns:
+        Path: Caminho para o diretório dos dados
+    """
+    try:
+        import kagglehub
+        import os
+        
+        # Configurar credenciais do Kaggle a partir do .env.local
+        username = os.getenv('KAGGLE_USERNAME')
+        key = os.getenv('KAGGLE_KEY')
+        
+        if username and key:
+            # Configurar variáveis de ambiente para Kaggle
+            os.environ['KAGGLE_USERNAME'] = username
+            os.environ['KAGGLE_KEY'] = key
+            print(f"Configurado Kaggle para usuário: {username}")
+        
+        print(f"Baixando dataset do Kaggle: {KAGGLE_DATASET}")
+        path = kagglehub.dataset_download(KAGGLE_DATASET)
+        print(f"Dataset baixado para: {path}")
+        
+        # Mover arquivos para data/
+        data_dir = ROOT_DIR / "data"
+        data_dir.mkdir(exist_ok=True)
+        
+        # Copiar arquivos
+        source_path = Path(path)
+        for file in ["train.csv", "test.csv"]:
+            src = source_path / file
+            if src.exists():
+                dst = data_dir / file
+                print(f"Copiando {file} para {dst}")
+                shutil.copy2(src, dst)
+        
+        return data_dir
+        
+    except ImportError:
+        print("kagglehub não instalado. Execute: pip install kagglehub")
+        raise
+    except Exception as e:
+        print(f"Erro ao baixar dataset: {e}")
+        raise
 
 
 class DataLoader:
@@ -41,13 +94,13 @@ class DataLoader:
     
     def ensure_data_exists(self, download_if_missing=True):
         """
-        Verifica se os dados existem localmente.
+        Verifica se os dados existem localmente e baixa do Kaggle se necessário.
         
         Args:
-            download_if_missing: Mantido por compatibilidade, mas ignorado (sem Kaggle)
+            download_if_missing: Se True, baixa do Kaggle se não encontrar localmente
         
         Returns:
-            bool: True se os dados existem
+            bool: True se os dados existem (ou foram baixados)
         """
         # procurar por diferentes nomes de arquivo
         train_path = config.get_train_path()
@@ -58,6 +111,17 @@ class DataLoader:
         if all_exist:
             self.logger.info("✅ Arquivos de dados encontrados localmente")
             return True
+        
+        # Dados não encontrados localmente
+        if download_if_missing:
+            self.logger.info("⬇ Baixando dataset do Kaggle...")
+            try:
+                download_kaggle_dataset()
+                self.logger.info("✅ Dataset baixado com sucesso!")
+                return True
+            except Exception as e:
+                self.logger.error(f"❌ Erro ao baixar: {e}")
+                return False
         
         self.logger.warning("⚠ Arquivos de dados não encontrados")
         self.logger.info(f"   Procurando em: {config.DATA_DIR}")

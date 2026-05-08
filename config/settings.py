@@ -14,9 +14,6 @@ class Config:
     # Seeds para reprodutibilidade
     SEED = int(os.getenv('SEED', 42))
     
-    # Competição (apenas para referência, não requer download)
-    KAGGLE_COMPETITION = os.getenv('KAGGLE_COMPETITION', 'topicos-especiais-em-aprendizado-de-maquina-v2')
-    
     # Configurações do modelo
     DEFAULT_MODELS = [
         'RandomForest',

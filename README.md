@@ -177,7 +177,34 @@ poetry shell
 ### 4. Pré-requisitos
 
 - Python >= 3.10
-- Dados: `data/train.csv` e `data/test.csv` (veja seção Formatos de Dados)
+- API Token do Kaggle (para download automático de dados)
+
+### 5. Dados do Projeto
+
+O projeto utiliza dados de trajetórias GPS de Beijing, China. O download é automático na primeira execução.
+
+#### Configuração do Kaggle
+
+**Opção A: Via .env.local (Recomendado)**
+```bash
+cp .env.example .env.local
+```
+Edite o `.env.local` com suas credenciais:
+```env
+KAGGLE_USERNAME=seu_usuario
+KAGGLE_KEY=seu_token
+```
+Obtenha em: https://www.kaggle.com/account
+
+**Opção B: Via Streamlit Cloud**
+Adicione nos **Secrets** do app:
+- `KAGGLE_USERNAME`
+- `KAGGLE_KEY`
+
+**Opção C: Download Manual**
+```bash
+kaggle datasets download -d muitomalakoi/trajectory-prediction-beijing -p data/ --unzip
+```
 
 ## ⚙️ Configuração
 
@@ -195,6 +222,10 @@ SEED=42
 
 # Diretório de dados (opcional)
 DATA_DIR=data
+
+# Kaggle API (obrigatório para download automático)
+KAGGLE_USERNAME=seu_usuario
+KAGGLE_KEY=seu_token
 ```
 
 ### Formatos de Dados
