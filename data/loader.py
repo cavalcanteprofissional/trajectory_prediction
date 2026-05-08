@@ -1,4 +1,12 @@
 # data/loader.py
+"""
+Data Loader - Versão Independente (sem Kaggle)
+
+Suporta:
+- Arquivos locais train.csv e test.csv
+- Upload de novos dados via interface
+- Múltiplos formatos de entrada
+"""
 import pandas as pd
 import numpy as np
 import ast
@@ -10,6 +18,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from config.settings import config
+
 
 class DataLoader:
     """Classe para carregamento e pré-processamento de dados"""
@@ -32,51 +41,29 @@ class DataLoader:
     
     def ensure_data_exists(self, download_if_missing=True):
         """
-        Garante que os dados existem, baixando se necessário
+        Verifica se os dados existem localmente.
         
         Args:
-            download_if_missing: Se True, baixa dados se não existirem
+            download_if_missing: Mantido por compatibilidade, mas ignorado (sem Kaggle)
         
         Returns:
-            bool: True se os dados existem/foram baixados
+            bool: True se os dados existem
         """
-        required_files = [
-            config.TRAIN_DATA_PATH,
-            config.TEST_DATA_PATH
-        ]
+        # procurar por diferentes nomes de arquivo
+        train_path = config.get_train_path()
+        test_path = config.get_test_path()
         
-        all_exist = all(f.exists() for f in required_files)
+        all_exist = train_path.exists() and test_path.exists()
         
         if all_exist:
-            self.logger.info("✅ Todos os arquivos de dados existem")
+            self.logger.info("✅ Arquivos de dados encontrados localmente")
             return True
         
-        if download_if_missing:
-            self.logger.info("📥 Alguns arquivos estão faltando, baixando...")
-            
-            try:
-                from .downloader import download_data
-                success = download_data(force=False)
-                
-                if success:
-                    # Verificar novamente após download
-                    all_exist = all(f.exists() for f in required_files)
-                    if all_exist:
-                        self.logger.info("✅ Dados baixados com sucesso")
-                        return True
-                    else:
-                        self.logger.error("❌ Download concluído mas arquivos ainda faltando")
-                        return False
-                else:
-                    self.logger.error("❌ Falha no download dos dados")
-                    return False
-                    
-            except Exception as e:
-                self.logger.error(f"❌ Erro ao baixar dados: {e}")
-                return False
-        else:
-            self.logger.warning("⚠ Arquivos de dados não encontrados")
-            return False
+        self.logger.warning("⚠ Arquivos de dados não encontrados")
+        self.logger.info(f"   Procurando em: {config.DATA_DIR}")
+        self.logger.info(f"   Train: {train_path}")
+        self.logger.info(f"   Test: {test_path}")
+        return False
     
     @staticmethod
     def parse_path_string(path_str):
@@ -96,43 +83,48 @@ class DataLoader:
             print(f"⚠ Erro ao parsear string: {path_str[:50]}... - Erro: {e}")
             return []
     
-    def load_data(self, use_sample_if_missing=True):
+    def load_data(self, use_sample_if_missing=True, train_path=None, test_path=None):
         """
-        Carrega os dados de treino e teste
+        Carrega os dados de treino e teste de arquivos locais.
         
         Args:
             use_sample_if_missing: Se True, cria dados de exemplo se reais não existirem
+            train_path: Caminho personalizado para dados de treino (opcional)
+            test_path: Caminho personalizado para dados de teste (opcional)
         
         Returns:
             tuple: (train_data, test_data)
         """
-        # Garantir que os dados existem
-        if not self.ensure_data_exists(download_if_missing=True):
+        # Usar caminhos fornecidos ou os padrões
+        train_file = train_path or config.get_train_path()
+        test_file = test_path or config.get_test_path()
+        
+        # Verificar se os dados existem
+        if not train_file.exists() or not test_file.exists():
             if use_sample_if_missing:
-                self.logger.warning("⚠ Usando dados de exemplo como fallback")
+                self.logger.warning("⚠ Arquivos não encontrados. Usando dados de exemplo.")
                 return self.create_sample_data()
             else:
                 raise FileNotFoundError(
-                    f"Arquivos de dados não encontrados em {config.DATA_DIR}. "
-                    f"Execute primeiro: kaggle competitions download -c {config.KAGGLE_COMPETITION}"
+                    f"Arquivos não encontrados.\n"
+                    f"Train: {train_file}\n"
+                    f"Test: {test_file}\n"
+                    f"Disponha os arquivos CSV em: {config.DATA_DIR}"
                 )
         
         # Carregar dados reais
         try:
-            self.logger.info(f"📖 Lendo dados de {config.DATA_DIR}")
+            self.logger.info(f"📖 Carregando dados de {config.DATA_DIR}")
+            self.logger.info(f"   Train: {train_file.name}")
+            self.logger.info(f"   Test: {test_file.name}")
             
             # Carregar train.csv
-            self.train_data = pd.read_csv(config.TRAIN_DATA_PATH)
+            self.train_data = pd.read_csv(train_file)
             self.logger.info(f"✅ Train carregado: {len(self.train_data)} linhas, {len(self.train_data.columns)} colunas")
             
             # Carregar test.csv
-            self.test_data = pd.read_csv(config.TEST_DATA_PATH)
+            self.test_data = pd.read_csv(test_file)
             self.logger.info(f"✅ Test carregado: {len(self.test_data)} linhas, {len(self.test_data.columns)} colunas")
-            
-            # Carregar sample_submission se existir
-            if config.SAMPLE_SUBMISSION_PATH.exists():
-                self.sample_submission = pd.read_csv(config.SAMPLE_SUBMISSION_PATH)
-                self.logger.info(f"✅ Sample submission carregado: {len(self.sample_submission)} linhas")
             
             # Parse das trajetórias
             self._parse_trajectories()
@@ -150,6 +142,144 @@ class DataLoader:
                 return self.create_sample_data()
             else:
                 raise
+    
+    def load_csv(self, filepath, validate=True):
+        """
+        Carrega dados de um arquivo CSV qualquer.
+        
+        Args:
+            filepath: Caminho do arquivo CSV
+            validate: Se True, valida o formato
+        
+        Returns:
+            DataFrame pandas
+        """
+        filepath = Path(filepath)
+        
+        if not filepath.exists():
+            raise FileNotFoundError(f"Arquivo não encontrado: {filepath}")
+        
+        df = pd.read_csv(filepath)
+        self.logger.info(f"✅ Carregado: {filepath.name} ({len(df)} linhas)")
+        
+        if validate:
+            self._validate_csv_format(df)
+        
+        return df
+    
+    def _validate_csv_format(self, df):
+        """Valida o formato básico do CSV"""
+        required_cols = ['path_lat', 'path_lon']
+        
+        missing = [c for c in required_cols if c not in df.columns]
+        if missing:
+            self.logger.warning(f"⚠ Colunas faltando: {missing}")
+            self.logger.info(f"   Colunas encontradas: {list(df.columns)}")
+        
+        return len(missing) == 0
+    
+    def validate_trajectory_data(self, df):
+        """
+        Valida dados de trajetória.
+        
+        Returns:
+            dict: Estatísticas de validação
+        """
+        stats = {
+            'total': len(df),
+            'with_path': 0,
+            'empty_paths': 0,
+            'invalid_coords': 0,
+            'out_of_range': 0
+        }
+        
+        if 'path_lat_parsed' not in df.columns:
+            df['path_lat_parsed'] = df['path_lat'].apply(self.parse_path_string)
+            df['path_lon_parsed'] = df['path_lon'].apply(self.parse_path_string)
+        
+        for idx, row in df.iterrows():
+            if 'path_lat_parsed' in row and len(row.get('path_lat_parsed', [])) > 0:
+                stats['with_path'] += 1
+                
+                # Verificar range
+                lats = row.get('path_lat_parsed', [])
+                lons = row.get('path_lon_parsed', [])
+                
+                if lats and lons:
+                    all_in_range = (
+                        config.LAT_MIN <= min(lats) <= config.LAT_MAX and
+                        config.LAT_MIN <= max(lats) <= config.LAT_MAX and
+                        config.LON_MIN <= min(lons) <= config.LON_MAX and
+                        config.LON_MIN <= max(lons) <= config.LON_MAX
+                    )
+                    if not all_in_range:
+                        stats['out_of_range'] += 1
+            else:
+                stats['empty_paths'] += 1
+        
+        return stats
+    
+    @staticmethod
+    def convert_discrete_to_list_format(df):
+        """
+        Converte formato discreto para formato lista.
+        
+        Formato discreto esperado:
+        trajectory_id,lat,lon,sequence
+        000_001,39.9,116.3,1
+        000_001,40.0,116.4,2
+        
+        Retorna DataFrame no formato lista:
+        trajectory_id,path_lat,path_lon
+        000_001,"[39.9,40.0]","[116.3,116.4]"
+        """
+        if df is None:
+            return None
+        
+        # Verificar colunas necessárias para formato discreto
+        required = {'trajectory_id', 'lat', 'lon'}
+        if not required.issubset(set(df.columns)):
+            return df  # Retorna original se não for formato discreto
+        
+        # Agrupar por trajectory_id
+        result = []
+        
+        for tid, group in df.groupby('trajectory_id'):
+            group = group.sort_values('lat' if 'lat' in df.columns else 'sequence')
+            
+            lats = group['lat'].tolist()
+            lons = group['lon'].tolist()
+            
+            result.append({
+                'trajectory_id': tid,
+                'path_lat': str(lats),
+                'path_lon': str(lons)
+            })
+        
+        return pd.DataFrame(result)
+    
+    @staticmethod
+    def detect_format(df):
+        """
+        Detecta o formato dos dados.
+        
+        Returns:
+            str: 'list' ou 'discrete'
+        """
+        if df is None:
+            return 'unknown'
+        
+        # Formato lista: path_lat contém listas
+        if 'path_lat' in df.columns:
+            sample = str(df['path_lat'].iloc[0])
+            if '[' in sample:
+                return 'list'
+        
+        # Formato discreto: lat单个数值
+        if 'lat' in df.columns and 'sequence' in df.columns:
+            return 'discrete'
+        
+        return 'unknown'
     
     def _parse_trajectories(self):
         """Parse das colunas de trajetória"""

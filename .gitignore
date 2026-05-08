@@ -1,19 +1,18 @@
-# Dados
-data/**
-!data/__init__.py
-!data/downloader.py
-!data/loader.py
-!data/
+# Dados - permitir CSVs (descomente se quiser versioning)
+# data/*.csv
 
 # Submissões
 submissions/
+
+# Modelos treinados
+models/saved/
 
 # Logs
 logs/
 
 # Reports
-reports/*
-!reports/pipeline_report.txt
+reports/*.html
+reports/*.txt
 
 # Ambiente virtual
 venv/
@@ -52,5 +51,9 @@ wheels/
 Thumbs.db
 
 # Credenciais
-.env
-.kaggle/kaggle.json
+.env.local
+.kaggle/
+
+# Dados (muito grandes para git)
+data/*.csv
+!data/.gitkeep

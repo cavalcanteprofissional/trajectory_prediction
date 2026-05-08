@@ -366,16 +366,52 @@ def run_data_pipeline(logger, config, auto_submit=False):
         from training import ModelTrainer
         trainer = ModelTrainer()
 
-        # Criar modelos com parâmetros otimizados
+# Criar modelos com parâmetros otimizados
         from models import ModelFactory
-        model_factory = ModelFactory(n_samples=len(prepared_data['X_train']))
-
-        # Usar apenas modelos prioritários para velocidade
-        models = model_factory.create_all_models(
-            priority_only=True,  # Usa apenas modelos prioritários
-            include_ensemble=True,  # Inclui ensemble
-            n_features=prepared_data['X_train'].shape[1]
+        from config.settings import config
+        _seed = args.seed if hasattr(args, 'seed') else config.SEED
+        model_factory = ModelFactory(
+            n_samples=len(prepared_data['X_train']),
+            seed=_seed
         )
+        
+        # Determinar modelos a usar
+        selected_model = args.model if hasattr(args, 'model') else 'best'
+        use_ensemble = (selected_model.lower() == 'ensemble')
+        
+        # Se模型 específico seleccionado
+        if selected_model and selected_model != 'best' and not use_ensemble:
+            logger.info(f"Usando modelo específico: {selected_model}")
+            models = {}
+            try:
+                models[selected_model] = model_factory.create_model(
+                    selected_model,
+                    n_features=prepared_data['X_train'].shape[1]
+                )
+                logger.info(f"Modelo {selected_model} criado com sucesso")
+            except Exception as e:
+                logger.warning(f"Erro ao criar {selected_model}: {e}")
+                logger.info("Voltando para modelos priority...")
+                models = model_factory.create_all_models(
+                    priority_only=True,
+                    include_ensemble=True,
+                    n_features=prepared_data['X_train'].shape[1]
+                )
+        elif use_ensemble:
+            logger.info("Usando ensemble: todos os modelos priority")
+            models = model_factory.create_all_models(
+                priority_only=True,
+                include_ensemble=True,
+                n_features=prepared_data['X_train'].shape[1]
+            )
+        else:
+            # 'best' ou vazio - treinar todos e sugerir o melhor
+            logger.info("Modo 'best': Treinando todos os modelos para sugerir o melhor")
+            models = model_factory.create_all_models(
+                priority_only=True,
+                include_ensemble=True,
+                n_features=prepared_data['X_train'].shape[1]
+            )
 
         # Se existirem resultados do Optuna, aplicar os melhores parâmetros aos modelos correspondentes
         optuna_file = Path('reports') / 'optuna_short_results.json'
@@ -488,8 +524,17 @@ def run_data_pipeline(logger, config, auto_submit=False):
         print(f"Range Longitude: [{predictions[:, 1].min():.6f}, {predictions[:, 1].max():.6f}]")
         
         if trainer.best_model_info:
-            print(f"\nMelhor modelo na validacao: {trainer.best_model_info['model_name']}")
-            print(f"   Erro medio: {trainer.best_model_info['mean_error']:.4f} km")
+            best_name = trainer.best_model_info['model_name']
+            best_error = trainer.best_model_info['mean_error']
+            print(f"\nMelhor modelo na validacao: {best_name}")
+            print(f"   Erro medio: {best_error:.4f} km")
+            
+            # Sugestão para próximo uso
+            print(f"\n==> Para usar este modelo automaticamente na proxima vez:")
+            _s = args.seed if args.seed else config.SEED
+            print(f"   python main.py --model {best_name} --seed {_s}")
+            print(f"   # Ou use 'best' para sempre usar o melhor:")
+            print(f"   python main.py --model best")
         
         print("\nPrimeiras 5 predicoes:")
         preview_df = pd.DataFrame({
@@ -601,8 +646,10 @@ Exemplos de uso:
                        help='Número de folds para validação cruzada (default: 10)')
     parser.add_argument('-m', '--message', type=str, default='',
                        help='Mensagem customizada para submissão Kaggle')
-    parser.add_argument('--model', type=str, default='',
-                       help='Modelo específico para usar (opcional)')
+    parser.add_argument('--model', type=str, default='best',
+                       help="Modelo: 'best' (sugere o melhor), ou especifique: XGBoost, LightGBM, CatBoost, RandomForest, GradientBoosting, BaggedGB, Ensemble")
+    parser.add_argument('--seed', type=int, default=None,
+                       help='Seed aleatória (default: config.SEED)')
     
     args = parser.parse_args()
     

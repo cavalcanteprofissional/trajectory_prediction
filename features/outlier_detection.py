@@ -9,41 +9,57 @@ from typing import Dict, List, Tuple, Optional
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
+# Importar limites de Beijing
+import sys
+sys.path.insert(0, '.')
+try:
+    from config.beijing_bounds import BEIJING_BOUNDS, BEIJING_BOUNDS_SAFE
+except ImportError:
+    # Fallback se não conseguir importar
+    BEIJING_BOUNDS = {
+        'lat_min': 39.4, 'lat_max': 40.5,
+        'lon_min': 116.0, 'lon_max': 117.0
+    }
+    BEIJING_BOUNDS_SAFE = {
+        'lat_min': 39.35, 'lat_max': 40.55,
+        'lon_min': 115.95, 'lon_max': 117.05
+    }
+
 
 class OutlierDetector:
     """Classe para detecção de outliers em trajetórias geográficas"""
     
-    # Limites geográficos válidos (coordenadas válidas globalmente)
-    VALID_LAT_RANGE = (-90, 90)
-    VALID_LON_RANGE = (-180, 180)
+    # Limites de Beijing (com margem de segurança)
+    VALID_LAT_RANGE = (BEIJING_BOUNDS_SAFE['lat_min'], BEIJING_BOUNDS_SAFE['lat_max'])
+    VALID_LON_RANGE = (BEIJING_BOUNDS_SAFE['lon_min'], BEIJING_BOUNDS_SAFE['lon_max'])
     
     def __init__(self, 
-                 max_jump_distance_km: float = 500.0,
-                 max_speed_kmh: float = 800.0,
-                 contamination: float = 0.05,
+                 max_jump_distance_km: float = 50.0,
+                 max_speed_kmh: float = 150.0,
+                 contamination: float = 0.03,
                  use_isolation_forest: bool = True,
-                 use_geographic_bounds: bool = False,
-                 max_outlier_percentage: float = 0.20):
+                 use_beijing_bounds: bool = True,
+                 max_outlier_percentage: float = 0.15):
         """
         Inicializa o detector de outliers
         
         Args:
             max_jump_distance_km: Distância máxima permitida entre pontos consecutivos (km)
-                Padrão: 500.0 km (permite gaps GPS maiores, viagens de avião, etc.)
+                Padrão: 50.0 km ( Beijing - áreas urbanas)
             max_speed_kmh: Velocidade máxima permitida (km/h) - assumindo 1 segundo entre pontos
-                Padrão: 800.0 km/h (permite trens rápidos, aviões, etc.)
+                Padrão: 150.0 km/h (tráfego urbano intenso)
             contamination: Proporção esperada de outliers (para Isolation Forest)
-                Padrão: 0.05 (5% - mais conservador)
+                Padrão: 0.03 (3% - mais conservador)
             use_isolation_forest: Se True, usa Isolation Forest para detecção adicional
-            use_geographic_bounds: Se True, usa limites geográficos baseados na distribuição
+            use_beijing_bounds: Se True, usa limites de Beijing (em vez de globais)
             max_outlier_percentage: Máximo de dados que podem ser marcados como outliers
-                Padrão: 0.20 (20% - proteção contra remoção excessiva)
+                Padrão: 0.15 (15% - proteção contra remoção excessiva)
         """
         self.max_jump_distance_km = max_jump_distance_km
         self.max_speed_kmh = max_speed_kmh
         self.contamination = contamination
         self.use_isolation_forest = use_isolation_forest
-        self.use_geographic_bounds = use_geographic_bounds
+        self.use_beijing_bounds = use_beijing_bounds
         self.max_outlier_percentage = max_outlier_percentage  # Proteção: não remover mais que X% dos dados
         self.logger = self._get_logger()
         self.isolation_forest = None
@@ -111,7 +127,7 @@ class OutlierDetector:
                 continue
             
             # Se use_geographic_bounds estiver ativado, detectar outliers baseado na distribuição dos dados
-            if self.use_geographic_bounds:
+            if self.use_beijing_bounds:
                 # Calcular limites baseados nos dados (percentis 1 e 99)
                 all_lats = []
                 all_lons = []

@@ -79,12 +79,13 @@ class TrajectoryVisualizer:
             print(f"❌ Erro ao carregar submissão: {e}")
             return None
 
-    def create_trajectory_map(self, max_trajectories=100, save_path=None):
+    def create_trajectory_map(self, max_trajectories=100, show_predictions=True, save_path=None):
         """
         Cria um mapa interativo com Folium mostrando trajetórias de treino, teste e predições
 
         Args:
             max_trajectories: Número máximo de trajetórias para plotar (para performance)
+            show_predictions: Se True, plota as predições (pontos verdes)
             save_path: Caminho para salvar o mapa HTML (opcional)
         """
         print("🗺️  Criando mapa de trajetórias...")
@@ -231,8 +232,8 @@ class TrajectoryVisualizer:
                 print(f"⚠️  Erro ao processar trajetória teste {trajectory_id}: {e}")
                 continue
 
-        # Plotar PREDIÇÕES da última submissão (VERDE)
-        if submission_df is not None:
+        # Plotar PREDIÇÕES da última submissão (VERDE) - apenas se show_predictions=True
+        if show_predictions and submission_df is not None:
             print(f"📍 Plotando {len(submission_df)} predições...")
 
             for idx, row in submission_df.iterrows():
@@ -261,6 +262,25 @@ class TrajectoryVisualizer:
 
         # Adicionar minimap
         plugins.MiniMap().add_to(m)
+
+        # Adicionar legenda integrada ao mapa
+        legend_html = '''
+<div style="position: fixed; 
+            bottom: 50px; left: 50px; width: 200px; height: auto;
+            border:2px solid grey; z-index:9999; font-size:13px;
+            background-color:white; padding: 10px;
+            border-radius: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
+<b style="font-size:15px;">Legenda</b><br>
+<span style="display:inline-block; width:12px; height:12px; background:blue; border-radius:50%; margin-right:5px;"></span> Treino (linha)<br>
+<span style="display:inline-block; width:10px; height:10px; background:darkblue; border-radius:50%; border:1px solid black; margin-right:5px; margin-left:10px;"></span> Partida<br>
+<span style="display:inline-block; width:10px; height:10px; background:darkred; border-radius:50%; border:1px solid black; margin-right:5px; margin-left:10px;"></span> Chegada<br>
+<span style="display:inline-block; width:12px; height:12px; background:red; border-radius:50%; margin-right:5px;"></span> Teste (linha)<br>
+<span style="display:inline-block; width:10px; height:10px; background:purple; border-radius:50%; border:1px solid black; margin-right:5px; margin-left:10px;"></span> Partida<br>
+<span style="display:inline-block; width:10px; height:10px; background:orange; border-radius:50%; border:1px solid black; margin-right:5px; margin-left:10px;"></span> Chegada<br>
+<span style="display:inline-block; width:12px; height:12px; background:green; border-radius:50%; margin-right:5px;"></span> Previsão<br>
+</div>
+'''
+        m.get_root().html.add_child(folium.Element(legend_html))
 
         # Salvar mapa
         if save_path is None:

@@ -67,11 +67,12 @@ class ModelFactory:
     
     DEFAULT_SEED = 42
     
-    def __init__(self, n_samples=None, lgbm_force_col_wise: bool = True):
+    def __init__(self, n_samples=None, lgbm_force_col_wise: bool = True, seed: int = 42):
         self.logger = self._get_logger()
         self.n_samples = n_samples
-        # Recomenda-se forçar col-wise para reduzir warnings em alguns datasets
         self.lgbm_force_col_wise = lgbm_force_col_wise
+        # Seed customizável
+        self.DEFAULT_SEED = seed
     
     def _get_logger(self):
         """Obtém logger"""
