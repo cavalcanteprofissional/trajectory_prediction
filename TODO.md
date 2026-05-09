@@ -57,8 +57,12 @@ Transformar o projeto em uma **aplicação independente** com:
 - [x] data/loader.py atualizado com download automático
   - Baixa do Kaggle se dados não existirem localmente
   - Funciona com Streamlit Cloud
-- [ ] **Etapa 6.1**: Atualizar README.md com instruções de Kaggle Dataset
-- [ ] Testar download automático
+- [x] **Etapa 6.1**: Streaming Cloud compatível
+  - Download automático funcionando
+  - catboost removido (incompatível)
+  - Mapa simplificado (apenas início/fim)
+  - Predições limitadas a 10 no toggle
+  - st.components.v1.html → st.iframe
 
 ---
 
