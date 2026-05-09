@@ -57,12 +57,55 @@ Transformar o projeto em uma **aplicação independente** com:
 - [x] data/loader.py atualizado com download automático
   - Baixa do Kaggle se dados não existirem localmente
   - Funciona com Streamlit Cloud
-- [x] **Etapa 6.1**: Streaming Cloud compatível
+- [x] **Etapa 6.1**: Streamlit Cloud compatível
   - Download automático funcionando
-  - catboost removido (incompatível)
-  - Mapa simplificado (apenas início/fim)
+  - catboost removido (incompatível com Python 3.14)
+  - Mapa simplificado (apenas início/fim da trajetória)
   - Predições limitadas a 10 no toggle
   - st.components.v1.html → st.iframe
+  - Valores default reduzir: Train 5, Test 3
+  - Correção de sintaxe try/except
+
+---
+
+## 📋 RESUMO - Problemas do Mapa no Streamlit Cloud
+
+### Problemas Identificados e Corrigidos:
+
+| # | Problema | Causa | Solução Aplicada |
+|---|---------|-------|-----------------|
+| 1 | Dados não encontrados | Falta download | ensure_data_exists() antes load_data() |
+| 2 | catboost não instala | Sem wheel Python 3.14 | Removido catboost |
+| 3 | Mapa travava | many pontos por PolyLine | Apenas início e fim |
+| 4 | Toggle predições crasha | 3000+ marcadores | Limitado a 10 |
+| 5 | st.components deprecated | API antiga | Trocado para st.iframe |
+| 6 | Timeout no startup | many processamentos | Botão para geração manual (revertido) |
+| 7 | Syntax error (182) | try/except mal indentado | Corrigido |
+
+### Arquivos Alterados:
+- `evaluation/visualization.py` - Visualização do mapa
+- `data/loader.py` - Download Kaggle
+- `config/settings.py` - Configurações
+- `app.py` - Interface Streamlit
+
+---
+
+## ⚠️ REINICIALIZAÇÃO DO COMPUTADOR
+
+**Status:** Usuário irá reiniciar o PC
+
+**Ao retornar:**
+1. Rebuild app no Streamlit Cloud
+2. Testar todas as abas:
+   - 🏠 Início (dados carregam)
+   - 🗺️ Mapa (com e sem toggle)
+   - 🤖 Treinamento
+   - 🔮 Previsão
+   - 📊 Análise
+
+**Próximos passos se algo falhar:**
+- Verificar logs do Streamlit Cloud
+- Ajustar valores default se necessário
 
 ---
 
