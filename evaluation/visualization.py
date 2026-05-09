@@ -198,11 +198,12 @@ class TrajectoryVisualizer:
                 print(f"⚠️  Erro ao processar trajetória teste {trajectory_id}: {e}")
                 continue
         
-        # Plotar PREDIÇÕES da última submissão (VERDE) - apenas se show_predictions=True
+# Plotar PREDIÇÕES da última submissão (VERDE) - apenas se show_predictions=True
+        # Limitar a 10 predições para evitar timeout no Cloud
         if show_predictions and submission_df is not None:
-            print(f"📍 Plotando {len(submission_df)} predições...")
+            print(f"📍 Plotando {min(10, len(submission_df))} predições...")
 
-            for idx, row in submission_df.iterrows():
+            for idx, row in submission_df.head(10).iterrows():
                 trajectory_id = row['trajectory_id']
                 pred_lat = row['latitude_pred']
                 pred_lon = row['longitude_pred']
